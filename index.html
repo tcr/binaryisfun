@@ -38,7 +38,7 @@ function bytesToBits (bytes)
   return bits;
 }
 
-function readFloat (updatehex)
+function readFloat (updatehex, updatefloat)
 {
   var bits = [];
   $('#bits span.checkbox').each(function () {
@@ -50,7 +50,9 @@ function readFloat (updatehex)
   if (updatehex !== false) {
     $('#text-float-hex').val(buf.toString('hex'))
   }
-  $('#text-float').val(buf.readDoubleLE(0))
+  if (updatefloat !== false) {
+    $('#text-float').val(buf.readDoubleLE(0))
+  }
 }
 
 $(function () {
@@ -75,7 +77,22 @@ $(function () {
         $('#bits span.checkbox').each(function (i) {
           $(this).toggleClass('checked', bits[i] == 1)
         })
-        readFloat(false);
+        readFloat(false, true);
+      } catch (e) { }
+    })
+  })
+
+  $('#text-float').on('keydown', function () {
+    var $this = $(this);
+    setTimeout(function () {
+      try {
+        var b = new Buffer(8);
+        b.writeDoubleLE(parseFloat($this.val()));
+        var bits = bytesToBits(b);
+        $('#bits span.checkbox').each(function (i) {
+          $(this).toggleClass('checked', bits[i] == 1)
+        })
+        readFloat(true, false);
       } catch (e) { }
     })
   })
