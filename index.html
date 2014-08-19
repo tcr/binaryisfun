@@ -87,7 +87,7 @@ $(function () {
     setTimeout(function () {
       try {
         var b = new Buffer(8);
-        b.writeDoubleLE(parseFloat($this.val()));
+        b.writeDoubleLE(parseFloat($this.val()), 0);
         var bits = bytesToBits(b);
         $('#bits span.checkbox').each(function (i) {
           $(this).toggleClass('checked', bits[i] == 1)
