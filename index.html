@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+  <script src="https://code.jquery.com/jquery.min.js"></script>
+  <script src="binary.bundle.js"></script>
+  <script>
+
+function repeat (v, n) {
+  var ret = [];
+  for (var i = 0; i < v; i++) {
+    ret.push(n);
+  }
+  return ret;
+}
+
+function bitsToBytes (bits)
+{
+  var bytes = []
+  bits = bits.slice();
+  while (bits.length) {
+    bytes.unshift(parseInt(bits.slice(-8).join(''), 2))
+    bits = bits.slice(0, -8);
+  }
+  return bytes;
+}
+
+function bytesToBits (bytes)
+{
+  var bits = []
+  for (var i = bytes.length-1; i >= 0; i--) {
+    var a = ('00000000' + bytes[i].toString(2)).slice(-8);
+    console.log('->', a)  
+    for (var j = a.length-1; j >= 0; j--) {
+      bits.unshift(a[j] == '1' ? 1 : 0);
+    }
+  }
+  return bits;
+}
+
+function readFloat (updatehex)
+{
+  var bits = [];
+  $('#bits span.checkbox').each(function () {
+    var $this = $(this)
+    bits.push($this.hasClass('checked') ? 1 : 0);
+  })
+  $('#text-float-binary').val(bits.join(''));
+  var buf = new Buffer(bitsToBytes(bits));
+  if (updatehex !== false) {
+    $('#text-float-hex').val(buf.toString('hex'))
+  }
+  $('#text-float').val(buf.readDoubleLE(0))
+}
+
+$(function () {
+  var sign = 1;
+  var exponent = 11;
+  var fraction = 52;
+  $('<span>').addClass('sect').addClass('sign').append(repeat(sign, '<span class="checkbox">').map($)).appendTo($('#bits'));
+  $('<span>').addClass('sect').addClass('exponent').append(repeat(exponent, '<span class="checkbox">').map($)).appendTo($('#bits'));
+  $('<span>').addClass('sect').addClass('fraction').append(repeat(fraction, '<span class="checkbox">').map($)).appendTo($('#bits'));
+
+  $('#bits').on('click', 'span.checkbox', function () {
+    $(this).toggleClass('checked');
+    readFloat();
+  })
+  readFloat();
+
+  $('#text-float-hex').on('keydown', function () {
+    var $this = $(this);
+    setTimeout(function () {
+      try {
+        var bits = bytesToBits(new Buffer($this.val(), 'hex'))
+        $('#bits span.checkbox').each(function (i) {
+          $(this).toggleClass('checked', bits[i] == 1)
+        })
+        readFloat(false);
+      } catch (e) { }
+    })
+  })
+})
+
+  </script>
+  <style>
+
+.sign { background: #ffa; }
+.exponent { background: #faf; }
+.fraction { background: #aaf; }
+.sect { line-height: 50px; display: inline-block; 
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none; }
+
+.checkbox { border: 1px solid black; background: #666; width: 12px; height: 30px; display: inline-block; box-sizing: border-box; margin: 0 1px; vertical-align: middle; cursor: pointer;  }
+.checkbox.checked { background: white; }
+
+input[type=text] { width: 50em; height: 2em; font-family: monospace; font-size: 16px; }
+
+  </style>
+  </head>
+  <body>
+  <h1>Binary is fun!</h1>
+
+  <h3>Doubles:</h3>
+
+<div id="main"><div id="bits"></div></div>
+<p><input type="text" id="text-float-binary"></p>
+<p><input type="text" id="text-float-hex"></p>
+<p><input type="text" id="text-float"></p>
+
+  </body>
+</html>
